@@ -1,0 +1,27 @@
+.model small
+.data
+n1 db 05h
+.code
+mov ax,@data
+mov ds,ax
+
+mov ah,01h
+int 21h
+CMP al,3Ah
+JC Down1
+SUB al,07h
+Down1: AND al,0Fh
+ROR al,04h
+mov bl,al
+
+mov ah,01h
+int 21h
+CMP al,3Ah
+JC Down2
+SUB al,07h
+Down2: AND al,0Fh
+ADD bl,al
+
+mov ah,4ch
+int 21h
+end

@@ -1,0 +1,45 @@
+
+MESS MACRO MSG; to let us to print a string
+MOV AH,09h
+LEA DX,MSG
+INT 21h
+ENDM
+
+.MODEL SMALL
+
+.STACK 1000H
+
+.DATA
+STR1 DB 30,?,30 dup('$');blank string
+MSG1 DB 0Ah,0Dh,"ENTER STRING $";prompt message
+MSG2 DB 0Ah,0Dh,"LENGTH IS : $"
+
+.CODE
+MOV AX,@DATA;start of code
+MOV DS,AX
+
+
+MESS MSG1
+
+LEA SI, STR1; si will point to the start index of s
+
+MOV AH,0Ah;to accept string from console
+MOV DX,SI
+INT 21h
+
+MOV AL,[SI+1];moving the value in the second index (real length)
+
+ADD AL,30h;to convert number to hexadecimal
+
+MESS MSG2
+
+MOV AH,02h;to print length
+MOV DL,AL
+INT 21h
+
+MOV AH,4CH
+INT 21h
+END
+
+
+

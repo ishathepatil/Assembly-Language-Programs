@@ -1,0 +1,150 @@
+MESS MACRO MSG:Macro to print a message on console
+MOV AH,09h
+LEA DX,MSG
+INT 21h
+ENDM
+
+.MODEL SMALL
+
+.DATA
+MSG1 DB 0Ah,0dh, "ENTER 32 BIT NUMBER:$":messages to be shown to prompt user or inform user
+MSG2 DB 0Ah,0dh, "ENTER 16 BIT NUMBER:$"
+MSG3 DB 0Ah,0dh, "QUOTIENT=:$"
+MSG4 DB 0Ah,0dh, "REMAINDER=:$"
+N11 DB 00h:to store first 8 bits of the 32 bit number(DH)
+N12 DB 00h:to store second 8 bits of the 32 bit number(DL)
+N21 DB 00h:to store third 8 bits of the 32 bit number(AH)
+N22 DB 00h:to store the last 8 bits of the 32 bit number(AL)
+D1 DB 00h:to store first 8 bits of the 16 bit number
+d2 db 00h:to store second 8 bits of the 16 bit number
+R1 DB 00h:to store first 8 bits of the 16 bit number(remainder)
+R2 DB 00h:to store second 8 bits of the 16 bit number(remainder)
+
+
+
+
+
+.CODE
+MOV AX,@DATA
+MOV DS,AX
+MESS MSG1
+CALL ACCEPT:accept first 8 bits of the 32 bit number
+
+MOV N11,BL
+
+CALL ACCEPT:accept second 8 bits of the 32 bit number
+
+MOV N12,BL
+
+CALL ACCEPT:accept third 8 bits of the 32 bit number
+
+MOV N21,BL
+
+CALL ACCEPT:accept last 8 bits of the 32 bit number
+
+MOV N22,BL
+
+MESS MSG2
+
+CALL ACCEPT:accept first 8 bits of the 16 bit number
+
+MOV D1,BL
+
+CALL ACCEPT:accept last 8 bits of the 16 bit number
+
+MOV D2,BL
+:note: 32 bit number is stored like: DX has the higher 16 bits and AX has the lower 16 bits
+MOV DH,N11
+MOV DL,N12
+MOV AH,N21
+MOV AL,N22
+
+MOV BH,D1:moving the 2-8 bit numbers to BX register
+MOV BL,D2
+
+DIV BX:DX AX/BX
+
+MOV R1,DH:putting remainder in R1(high) and R2(low)
+MOV R2,DL
+
+MOV CX,AX:putting quotient in CX
+MESS MSG3
+CALL DISP:displaying quotient
+
+MOV CH,R1
+MOV CL,R2
+MESS MSG4
+CALL DISP:displaying remainder
+
+MOV AH,4CH
+INT 21h
+
+ACCEPT PROC NEAR:to accept 8 bit numbers
+MOV AH,01h
+INT 21h:to  accept keyword input
+CMP AL,3Ah:check if input is numeric or an alphabet
+JC DOWN1
+SUB AL,07h:if alphabet is entered
+DOWN1:AND AL,0Fh:if number is entered
+ROR AL,04h:putting to tens place
+MOV BL,AL
+
+MOV AH,01h
+INT 21h:to  accept keyword input
+CMP AL,3Ah:check if input is numeric or an alphabet
+JC DOWN2
+SUB AL,07h:if alphabet is entered
+DOWN2:AND AL,0Fh:if number is entered
+ADD BL,AL:now BL has the final input 
+
+RET
+ENDP:end of procedure
+
+DISP PROC NEAR:to display 16 bit numbers
+MOV BH,CH
+AND BH,0F0h:to get tens place of the 8 bit number
+ROR BH,4h:to put it in units place
+CMP BH,0Ah:to check if its an alphabet or a number
+JC DOWN3
+ADD BH,07h:if alphabet
+DOWN3:ADD BH,30h:if number
+MOV DL,BH
+MOV AH,02h:printing DL register
+INT 21h
+
+MOV BH,CH
+AND BH,0Fh:to get units place of the 8 bit number
+CMP BH,0Ah:to check if its an alphabet or a number
+JC DOWN4
+ADD BH,07h:if alphabet
+DOWN4:ADD BH,30h:if number
+MOV DL,BH
+MOV AH,02h:printing DL register
+INT 21h
+
+MOV BH,CH
+AND BH,0F0h:to get tens place of the 8 bit number
+ROR BH,4h:to put it in units place
+CMP BH,0Ah:to check if its an alphabet or a number
+JC DOWN5
+ADD BH,07h:if alphabet
+DOWN5:ADD BH,30h:if number
+MOV DL,BH
+MOV AH,02h:printing DL register
+INT 21h
+
+MOV BH,CH
+AND BH,0Fh:to get units place of the 8 bit number
+CMP BH,0Ah:to check if its an alphabet or a number
+JC DOWN6
+ADD BH,07h:if alphabet
+DOWN6:ADD BH,30h:if number
+MOV DL,BH
+MOV AH,02h:printing DL register
+INT 21h
+
+
+RET
+ENDP
+
+END

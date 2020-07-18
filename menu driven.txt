@@ -1,0 +1,127 @@
+MESS MACRO MSG ;Macro to print a message on console
+MOV AH,09h
+LEA DX,MSG
+INT 21h
+ENDM
+
+.MODEL SMALL
+
+.DATA
+N1 DB 00h;to accept number
+N2 DB 00h
+C DB 00h
+MSG1 DB 0Ah,0dh, "MENU:$";to print menu to the console
+MSG2 DB 0Ah,0dh, "1)ADDITION :$"
+MSG3 DB 0Ah,0dh, "2)SUSTRACTION :$"
+MSG4 DB 0Ah,0dh, "3)MULTIPLICATION :$"
+MSG6 DB 0Ah,0dh, "ENTER 1ST NUMBER=:$"
+MSG7 DB 0Ah,0dh, "ENTER 2ND NUMBER=:$"
+MSG8 DB 0Ah,0dh, "ANSWER=:$"
+
+.CODE
+MOV AX,@DATA
+MOV DS,AX
+
+MESS MSG1;printing menu
+MESS MSG2
+MESS MSG3
+MESS MSG4
+MOV AH,01h
+INT 21h;accepting choice
+MOV C,AL;saving the choice to a variable
+
+CMP C,31h;to compare to ‘1’
+JNE STOP1
+MESS MSG6
+CALL ACCEPT ;to accept a number
+MOV N1,CL
+MESS MSG7
+CALL ACCEPT ;to accept a number
+ADD N1,CL ; add the 2 numbers and thus being saved to CL register
+MOV CL,N1
+MESS MSG8
+CALL DISP ;displaying the answer
+JMP STOP; to jump to end of code
+
+STOP1:CMP C,32h; to compare to ‘2’
+JNE STOP2
+MESS MSG6
+CALL ACCEPT ;to accept a number
+MOV N1,CL
+MESS MSG7
+CALL ACCEPT ;to accept a number
+SUB N1,CL ;to subtract and save answer to CL 
+MOV CL,N1
+MESS MSG8
+CALL DISP ;to display answer
+JMP STOP
+
+STOP2:CMP C,33h ;to compare to ‘3’
+JNE STOP3
+MESS MSG6
+CALL ACCEPT ;to accept a number
+MOV N1,CL
+MESS MSG7
+CALL ACCEPT ;to accept a number
+MOV N2,CL
+MOV AL,N1
+MOV BL,N2
+MUL BL; multiplying AL and BL and saving the answer in AL register
+MOV CL,AL
+MESS MSG8
+CALL DISP ;to display answer
+JMP STOP
+
+STOP3: JMP STOP
+
+STOP:
+
+MOV AH,4CH
+INT 21h
+
+ACCEPT PROC NEAR;to accept 8 bit numbers
+MOV AH,01h
+INT 21h;to  accept keyword input
+CMP AL,3Ah;check if input is numeric or an alphabet
+JC DOWN1
+SUB AL,07h;if alphabet is entered
+DOWN1;AND AL,0Fh;if number is entered
+ROR AL,04h;putting to tens place
+MOV BL,AL
+
+MOV AH,01h
+INT 21h;to  accept keyword input
+CMP AL,3Ah;check if input is numeric or an alphabet
+JC DOWN2
+SUB AL,07h;if alphabet is entered
+DOWN2;AND AL,0Fh;if number is entered
+ADD BL,AL;now BL has the final input 
+
+RET
+ENDP;end of procedure
+
+DISP PROC NEAR;to display 8 bit numbers
+MOV BL,CL
+AND BL,0F0h;to get tens place of the 8 bit number
+ROR BL,4h;to put it in units place
+CMP BL,0Ah;to check if its an alphabet or a number
+JC DOWN3
+ADD BL,07h;if alphabet
+DOWN3:ADD BL,30h;if number
+MOV DL,BL
+MOV AH,02h;printing DL register
+INT 21h
+
+MOV BL,CL
+AND BL,0Fh;to get units place of the 8 bit number
+CMP BL,0Ah;to check if its an alphabet or a number
+JC DOWN4
+ADD BL,07h;if alphabet
+DOWN4:ADD BL,30h;if number
+MOV DL,BL
+MOV AH,02h;printing DL register
+INT 21h
+RET
+ENDP
+
+END
